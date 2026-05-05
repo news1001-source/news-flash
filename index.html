@@ -1,0 +1,1664 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="News Flash">
+<meta name="theme-color" content="#e63946">
+<meta name="description" content="Lajme nga faqet shqiptare ne nje vend">
+<title>News Flash - Lajme Shqiptare</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    background: #0a0b0d;
+    color: #f1f5f9;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* HEADER */
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10, 11, 13, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid #1f2126;
+    padding-top: env(safe-area-inset-top);
+  }
+  .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .brand-logo {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, #e63946, #c1121f);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    box-shadow: 0 2px 12px rgba(230, 57, 70, 0.4);
+  }
+  .brand-text {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+  .brand-text span { color: #e63946; }
+  .header-actions {
+    display: flex;
+    gap: 4px;
+  }
+  .icon-btn {
+    width: 38px; height: 38px;
+    border: none;
+    background: transparent;
+    color: #f1f5f9;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .icon-btn:active { background: #1f2126; }
+  .icon-btn.spinning svg { animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* SEARCH */
+  .search-bar {
+    padding: 0 16px 12px;
+  }
+  .search-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .search-input {
+    width: 100%;
+    background: #16181c;
+    border: 1px solid #25282e;
+    color: #f1f5f9;
+    padding: 12px 14px 12px 42px;
+    border-radius: 12px;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .search-input:focus { border-color: #e63946; }
+  .search-icon {
+    position: absolute;
+    left: 14px;
+    color: #64748b;
+    pointer-events: none;
+  }
+  .search-clear {
+    position: absolute;
+    right: 8px;
+    width: 28px; height: 28px;
+    border: none;
+    background: #25282e;
+    color: #94a3b8;
+    border-radius: 50%;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+  }
+  .search-input.has-value ~ .search-clear { display: flex; }
+
+  /* SOURCE CHIPS */
+  .chips-row {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 0 16px 12px;
+    scrollbar-width: none;
+  }
+  .chips-row::-webkit-scrollbar { display: none; }
+  .chip {
+    flex-shrink: 0;
+    padding: 7px 14px;
+    background: #16181c;
+    border: 1px solid #25282e;
+    color: #cbd5e1;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+  }
+  .chip.active {
+    background: #e63946;
+    border-color: #e63946;
+    color: #fff;
+  }
+
+  /* PULL TO REFRESH */
+  .ptr {
+    position: relative;
+    transition: transform 0.2s ease;
+  }
+  .ptr-indicator {
+    position: absolute;
+    top: -54px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px; height: 40px;
+    background: #16181c;
+    border: 1px solid #25282e;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #e63946;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .ptr.pulling .ptr-indicator { opacity: 1; }
+  .ptr.refreshing .ptr-indicator { opacity: 1; }
+  .ptr.refreshing .ptr-indicator svg { animation: spin 1s linear infinite; }
+
+  /* FEED */
+  .feed {
+    padding: 4px 12px 80px;
+  }
+  .news-card {
+    background: #14161a;
+    border: 1px solid #1f2126;
+    border-radius: 16px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    transition: transform 0.1s, border-color 0.15s;
+  }
+  .news-card:active { transform: scale(0.985); border-color: #2a2d33; }
+  .news-thumb {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: linear-gradient(135deg, #1f2126, #16181c);
+    object-fit: cover;
+    display: block;
+  }
+  .news-body { padding: 14px; }
+  .news-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    color: #94a3b8;
+  }
+  .news-source {
+    font-weight: 600;
+    color: #e63946;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .news-dot { color: #475569; }
+  .news-title {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.35;
+    color: #f1f5f9;
+    margin-bottom: 8px;
+    letter-spacing: -0.2px;
+  }
+  .news-desc {
+    font-size: 14px;
+    color: #94a3b8;
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+  .news-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .news-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: #1f2126;
+    border: none;
+    color: #cbd5e1;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+  .news-btn:active { background: #2a2d33; }
+  .news-btn.primary {
+    background: linear-gradient(135deg, #e63946, #c1121f);
+    color: #fff;
+  }
+  .news-btn.primary:active { filter: brightness(0.9); }
+
+  /* AI SUMMARY BOX */
+  .ai-summary {
+    margin-top: 12px;
+    padding: 12px;
+    background: linear-gradient(135deg, rgba(230, 57, 70, 0.08), rgba(193, 18, 31, 0.04));
+    border: 1px solid rgba(230, 57, 70, 0.25);
+    border-radius: 12px;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: #f1f5f9;
+    display: none;
+  }
+  .ai-summary.show { display: block; animation: fadeIn 0.3s; }
+  .ai-summary-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #e63946;
+    margin-bottom: 6px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* STATES */
+  .empty, .loading-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #64748b;
+  }
+  .empty-icon, .loading-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+    opacity: 0.4;
+  }
+  .empty-title {
+    font-size: 16px;
+    color: #cbd5e1;
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  .empty-desc { font-size: 14px; }
+  .loading-icon svg { animation: spin 1s linear infinite; }
+
+  .skeleton {
+    background: linear-gradient(90deg, #14161a 25%, #1a1c20 50%, #14161a 75%);
+    background-size: 200% 100%;
+    animation: skeleton 1.4s infinite;
+    border-radius: 16px;
+    margin-bottom: 12px;
+    height: 200px;
+  }
+  @keyframes skeleton {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: calc(20px + env(safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #1f2126;
+    color: #f1f5f9;
+    padding: 10px 18px;
+    border-radius: 12px;
+    font-size: 14px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    border: 1px solid #2a2d33;
+    z-index: 200;
+    transition: transform 0.3s ease;
+    max-width: calc(100vw - 32px);
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* SETTINGS PANEL */
+  .panel-bg {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 300;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+  }
+  .panel-bg.show { opacity: 1; pointer-events: auto; }
+  .panel {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: #14161a;
+    border-radius: 20px 20px 0 0;
+    padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
+    z-index: 301;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+  .panel.show { transform: translateY(0); }
+  .panel-handle {
+    width: 40px; height: 4px;
+    background: #2a2d33;
+    border-radius: 2px;
+    margin: 0 auto 16px;
+  }
+  .panel-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  .panel-section {
+    margin-bottom: 20px;
+  }
+  .panel-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .source-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: #1a1c20;
+    border-radius: 12px;
+    margin-bottom: 6px;
+  }
+  .source-toggle-info { flex: 1; }
+  .source-toggle-name { font-size: 14px; font-weight: 500; }
+  .source-toggle-url { font-size: 11px; color: #64748b; margin-top: 2px; }
+  .switch {
+    position: relative;
+    width: 44px; height: 26px;
+    background: #2a2d33;
+    border-radius: 13px;
+    cursor: pointer;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .switch.on { background: #e63946; }
+  .switch::after {
+    content: "";
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 20px; height: 20px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.2s;
+  }
+  .switch.on::after { transform: translateX(18px); }
+  .panel-info {
+    font-size: 13px;
+    color: #94a3b8;
+    line-height: 1.5;
+    background: #1a1c20;
+    padding: 12px;
+    border-radius: 10px;
+  }
+  .panel-info code {
+    background: #25282e;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-family: ui-monospace, monospace;
+  }
+  .panel-btn {
+    width: 100%;
+    padding: 14px;
+    background: #1f2126;
+    border: none;
+    color: #cbd5e1;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+
+  /* LIVE INDICATOR */
+  .live-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    background: #22c55e;
+    border-radius: 50%;
+    margin-right: 4px;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .last-update {
+    font-size: 11px;
+    color: #64748b;
+    text-align: center;
+    padding: 4px 0 8px;
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-logo">📰</div>
+      <div class="brand-text">News<span>Flash</span></div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" id="refreshBtn" aria-label="Rifresko">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <polyline points="1 20 1 14 7 14"></polyline>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+        </svg>
+      </button>
+      <button class="icon-btn" id="settingsBtn" aria-label="Cilesimet">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="search-bar">
+    <div class="search-input-wrap">
+      <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input id="searchInput" class="search-input" type="search" placeholder="Kërko fjalë kyçe (p.sh. krim)" autocomplete="off">
+      <button class="search-clear" id="searchClear" aria-label="Fshi">✕</button>
+    </div>
+  </div>
+
+  <div class="chips-row" id="chipsRow"></div>
+  <div class="last-update" id="lastUpdate"><span class="live-dot"></span>Live</div>
+</header>
+
+<main>
+  <div class="ptr" id="ptr">
+    <div class="ptr-indicator">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="23 4 23 10 17 10"></polyline>
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path>
+      </svg>
+    </div>
+    <div class="feed" id="feed">
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<div class="panel-bg" id="panelBg"></div>
+<div class="panel" id="panel">
+  <div class="panel-handle"></div>
+  <div class="panel-title">Cilësimet</div>
+  <div class="panel-section">
+    <div class="panel-label">Burimet e lajmeve</div>
+    <div id="sourcesList"></div>
+  </div>
+  <div class="panel-section">
+    <div class="panel-label">AI Gemini (rifrazim i vërtetë)</div>
+    <div class="panel-info" style="margin-bottom:10px">
+      Algoritmi lokal nxjerr fjalitë kyçe pa rifrazim. Për përmbledhje të vërtetë me AI që rifrazon dhe nxjerr esencën:
+      <br><br>
+      1. Merr API key falas nga <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#e63946">aistudio.google.com/apikey</a> (1 min, falas)
+      <br>
+      2. Ngjite më poshtë. Ruhet vetëm në telefon.
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:8px">
+      <input id="geminiKeyInput" type="password" placeholder="AIzaSy..."
+             style="flex:1;background:#1a1c20;border:1px solid #25282e;color:#f1f5f9;padding:10px;border-radius:8px;font-size:14px;outline:none;font-family:ui-monospace,monospace">
+    </div>
+    <button id="saveGeminiBtn" class="panel-btn" style="background:#1a1c20;color:#22c55e;margin-top:0">Ruaj API key</button>
+    <div id="geminiStatus" style="font-size:12px;color:#94a3b8;margin-top:8px;text-align:center;min-height:16px"></div>
+  </div>
+  <div class="panel-section">
+    <div class="panel-label">Shto RSS personal</div>
+    <div style="display:flex;gap:6px;margin-bottom:8px">
+      <input id="customNameInput" type="text" placeholder="Emri (p.sh. Klan Plus)"
+             style="flex:1;background:#1a1c20;border:1px solid #25282e;color:#f1f5f9;padding:10px;border-radius:8px;font-size:14px;outline:none">
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:8px">
+      <input id="customUrlInput" type="url" placeholder="URL e RSS feed"
+             style="flex:1;background:#1a1c20;border:1px solid #25282e;color:#f1f5f9;padding:10px;border-radius:8px;font-size:14px;outline:none">
+    </div>
+    <button id="addCustomBtn" class="panel-btn" style="background:#1a1c20;color:#22c55e;margin-top:0">+ Shto burim</button>
+    <div id="customStatus" style="font-size:12px;color:#94a3b8;margin-top:8px;text-align:center;min-height:16px"></div>
+  </div>
+  <div class="panel-section">
+    <div class="panel-label">Rreth aplikacionit</div>
+    <div class="panel-info">
+      Aplikacioni mbledh lajme nga RSS-të e faqeve shqiptare. Për ta shtuar në iPhone:
+      hap këtë faqe në <strong>Safari</strong>, shtyp ikonën <strong>Share</strong>
+      dhe zgjidh <code>Add to Home Screen</code>. Pastaj do ta kesh si app.
+      <br><br>
+      Përmbledhja AI është 100% lokale (brenda telefonit) — përdor algoritëm ekstraktiv,
+      pa internet shtesë, pa API key.
+    </div>
+  </div>
+  <button class="panel-btn" id="disableFailedBtn" style="background:#1a1c20;color:#ef4444;display:none">Çaktivizo automatikisht burimet që dështuan</button>
+  <button class="panel-btn" id="enableAllBtn" style="background:#1a1c20;color:#22c55e">Aktivizo të gjitha burimet</button>
+  <button class="panel-btn" id="closePanel">Mbyll</button>
+</div>
+
+<script>
+/* =====================================================
+   CONFIG: Albanian news RSS sources
+   Each source can have multiple RSS URL candidates — fetcher tries each
+===================================================== */
+const SOURCES = [
+  { id: 'topchannel',   name: 'Top Channel',   rss: [
+      'https://top-channel.tv/feed/',
+      'https://top-channel.tv/rss',
+      'https://top-channel.tv/?feed=rss2'
+    ], color: '#e63946' },
+  { id: 'tema',         name: 'Gazeta Tema',   rss: [
+      'https://www.gazetatema.net/?feed=rss2',
+      'https://www.gazetatema.net/feed',
+      'https://gazetatema.net/feed/',
+      'https://www.gazetatema.net/feed/'
+    ], color: '#3a86ff' },
+  { id: 'balkanweb',    name: 'Balkanweb',     rss: [
+      'https://www.balkanweb.com/feed/',
+      'https://balkanweb.com/feed/',
+      'https://www.balkanweb.com/?feed=rss2'
+    ], color: '#fb8500' },
+  { id: 'shqiptarja',   name: 'Shqiptarja',    rss: [
+      'https://shqiptarja.com/feed',
+      'https://shqiptarja.com/feed/',
+      'https://shqiptarja.com/rss'
+    ], color: '#06d6a0' },
+  { id: 'panorama',     name: 'Panorama',      rss: [
+      'https://www.panorama.com.al/feed/',
+      'https://panorama.com.al/feed/',
+      'https://www.panorama.com.al/?feed=rss2'
+    ], color: '#ffbe0b' },
+  { id: 'reporter',     name: 'Reporter.al',   rss: [
+      'https://www.reporter.al/feed/',
+      'https://reporter.al/feed/'
+    ], color: '#8338ec' },
+  { id: 'lapsi',        name: 'Lapsi.al',      rss: [
+      'https://lapsi.al/feed/',
+      'https://lapsi.al/?feed=rss2'
+    ], color: '#ff006e' },
+  { id: 'news24',       name: 'News24',        rss: [
+      'https://news24.al/feed/',
+      'https://news24.al/?feed=rss2'
+    ], color: '#00b4d8' },
+  { id: 'politiko',     name: 'Politiko',      rss: [
+      'https://politiko.al/feed/',
+      'https://politiko.al/?feed=rss2'
+    ], color: '#ef476f' },
+  { id: 'a2',           name: 'A2 CNN',        rss: [
+      'https://a2news.com/feed',
+      'https://a2news.com/feed/',
+      'https://a2cnn.com/feed/',
+      'https://a2news.com/?feed=rss2'
+    ], color: '#118ab2' },
+  { id: 'syri',         name: 'Syri.net',      rss: [
+      'https://www.syri.net/feed/',
+      'https://syri.net/feed/',
+      'https://www.syri.net/?feed=rss2'
+    ], color: '#ffd60a' },
+  { id: 'gazetadita',   name: 'Gazeta Dita',   rss: [
+      'https://www.gazetadita.al/feed/',
+      'https://gazetadita.al/feed/',
+      'https://www.gazetadita.al/?feed=rss2'
+    ], color: '#9d4edd' },
+  { id: 'supersport',   name: 'SuperSport',    rss: [
+      'https://www.supersport.al/feed',
+      'https://www.supersport.al/feed/',
+      'https://supersport.al/feed/'
+    ], color: '#06ffa5' },
+  { id: 'panoramasport',name: 'Panorama Sport',rss: [
+      'https://www.panoramasport.com.al/feed/',
+      'https://panoramasport.com.al/feed/'
+    ], color: '#fb5607' },
+  // Burime alternative — më të besueshme me proxy publike
+  { id: 'telegrafi',    name: 'Telegrafi',     rss: [
+      'https://telegrafi.com/feed/',
+      'https://telegrafi.com/?feed=rss2'
+    ], color: '#fca311' },
+  { id: 'albeu',        name: 'Albeu',         rss: [
+      'https://albeu.com/feed/',
+      'https://albeu.com/?feed=rss2'
+    ], color: '#2ec4b6' },
+  { id: 'newsbomb',     name: 'NewsBomb',      rss: [
+      'https://www.newsbomb.al/feed/',
+      'https://newsbomb.al/feed/'
+    ], color: '#e71d36' },
+  { id: 'kohajone',     name: 'Koha Jone',     rss: [
+      'https://www.kohajone.com/feed/',
+      'https://kohajone.com/feed/'
+    ], color: '#5e60ce' },
+  { id: 'voal',         name: 'Voal',          rss: [
+      'https://www.voal.ch/feed/',
+      'https://voal.ch/feed/'
+    ], color: '#80ed99' },
+  { id: 'albanianpost', name: 'Albanian Post', rss: [
+      'https://albanianpost.com/feed/',
+      'https://www.albanianpost.com/feed/'
+    ], color: '#a0c4ff' }
+];
+
+const STORAGE_KEY_CUSTOM = 'nf_custom_sources';
+
+function loadCustomSources() {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY_CUSTOM);
+    if (stored) return JSON.parse(stored);
+  } catch (e) {}
+  return [];
+}
+function saveCustomSources(list) {
+  try { localStorage.setItem(STORAGE_KEY_CUSTOM, JSON.stringify(list)); } catch (e) {}
+}
+function getAllSources() {
+  const custom = loadCustomSources().map(c => ({
+    id: 'custom_' + c.id,
+    name: c.name,
+    rss: c.rss,
+    color: '#7c3aed',
+    custom: true
+  }));
+  return [...SOURCES, ...custom];
+}
+
+/* Multiple fetch strategies. Tried in order until one succeeds.
+   Strategy 'json' returns parsed feed; 'xml' returns raw XML to parse.
+   Order: most reliable for bulk-fetching first. */
+const FETCH_STRATEGIES = [
+  { name: 'corsproxy',   type: 'xml',  build: url => `https://corsproxy.io/?${encodeURIComponent(url)}` },
+  { name: 'allorigins',  type: 'xml',  build: url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}` },
+  { name: 'codetabs',    type: 'xml',  build: url => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(url)}` },
+  { name: 'rss2json',    type: 'json', build: url => `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}&count=30` },
+  { name: 'thingproxy',  type: 'xml',  build: url => `https://thingproxy.freeboard.io/fetch/${url}` }
+];
+
+const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 min
+const FETCH_TIMEOUT = 8000;
+const STORAGE_KEY_SOURCES = 'nf_enabled_sources';
+const STORAGE_KEY_LAST = 'nf_last_seen';
+
+/* =====================================================
+   STATE
+===================================================== */
+let allItems = [];
+let selectedSource = 'all';
+let searchQuery = '';
+let enabledSources = loadEnabledSources();
+let isRefreshing = false;
+let autoRefreshTimer = null;
+let lastDiagnostics = []; // [{source, status, strategy, error, count}]
+
+/* =====================================================
+   ELEMENTS
+===================================================== */
+const $feed = document.getElementById('feed');
+const $chips = document.getElementById('chipsRow');
+const $search = document.getElementById('searchInput');
+const $searchClear = document.getElementById('searchClear');
+const $refresh = document.getElementById('refreshBtn');
+const $settings = document.getElementById('settingsBtn');
+const $panel = document.getElementById('panel');
+const $panelBg = document.getElementById('panelBg');
+const $closePanel = document.getElementById('closePanel');
+const $sourcesList = document.getElementById('sourcesList');
+const $toast = document.getElementById('toast');
+const $lastUpdate = document.getElementById('lastUpdate');
+const $ptr = document.getElementById('ptr');
+
+/* =====================================================
+   STORAGE
+===================================================== */
+function loadEnabledSources() {
+  let stored = {};
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_SOURCES);
+    if (raw) stored = JSON.parse(raw) || {};
+  } catch (e) {}
+  // Merge: any source not yet in storage defaults to enabled (so newly added sources show up)
+  const result = { ...stored };
+  getAllSources().forEach(s => {
+    if (!(s.id in result)) result[s.id] = true;
+  });
+  return result;
+}
+function saveEnabledSources() {
+  try { localStorage.setItem(STORAGE_KEY_SOURCES, JSON.stringify(enabledSources)); } catch (e) {}
+}
+
+/* =====================================================
+   FETCH RSS — try each strategy in order, return first success
+   Returns { items: [], strategy: 'name', error: null } on success
+   or       { items: [], strategy: null, error: 'msg' } on total failure
+===================================================== */
+async function fetchAndParseSource(source) {
+  // Source can have a single rss URL (string) or multiple candidates (array)
+  const rssUrls = Array.isArray(source.rss) ? source.rss : [source.rss];
+
+  // Keep best (most informative) error to surface to the user
+  let bestError = '';
+  let feedLevelError = '';
+
+  // Try each URL × each strategy combination
+  for (const rssUrl of rssUrls) {
+    let urlFeedLevelFails = 0; // count 404/feed errors per URL — skip URL after 2
+
+    for (const strategy of FETCH_STRATEGIES) {
+      // If this URL returned feed-level error twice, it's likely dead — skip to next URL
+      if (urlFeedLevelFails >= 2) break;
+
+      try {
+        const url = strategy.build(rssUrl);
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT);
+        const res = await fetch(url, { signal: ctrl.signal, mode: 'cors' });
+        clearTimeout(t);
+
+        if (!res.ok) {
+          const e = `HTTP ${res.status} (${strategy.name})`;
+          if (res.status === 404 || res.status === 410) {
+            feedLevelError = `RSS s'ekziston: ${res.status}`;
+            urlFeedLevelFails++;
+          }
+          bestError = bestError || e;
+          continue;
+        }
+
+        let items = [];
+        if (strategy.type === 'json') {
+          const data = await res.json().catch(() => null);
+          if (!data) { bestError = bestError || `bad json (${strategy.name})`; continue; }
+          if (data.status !== 'ok' || !Array.isArray(data.items)) {
+            const msg = data.message || data.status || 'feed error';
+            feedLevelError = `Feed error: ${String(msg).slice(0, 60)}`;
+            bestError = bestError || feedLevelError;
+            continue;
+          }
+          items = data.items.map(it => ({
+            id: source.id + '|' + (it.link || it.guid),
+            title: cleanText(it.title || ''),
+            link: it.link || '',
+            description: cleanText(stripHTML(it.description || it.content || '')),
+            pubDate: it.pubDate ? new Date(it.pubDate) : new Date(),
+            image: it.thumbnail || (it.enclosure && it.enclosure.link) || extractImageFromHtml(it.description || it.content || ''),
+            source
+          })).filter(it => it.title && it.link);
+        } else {
+          const xmlText = await res.text();
+          if (!xmlText || xmlText.length < 50) {
+            bestError = bestError || `empty (${strategy.name})`;
+            continue;
+          }
+          items = parseRSSXml(xmlText, source);
+          if (items.length === 0) {
+            bestError = bestError || `parse failed (${strategy.name})`;
+            continue;
+          }
+        }
+
+        if (items.length > 0) {
+          return { items, strategy: strategy.name, error: null };
+        }
+      } catch (e) {
+        const msg = e.name === 'AbortError' ? 'timeout' : (e.message || 'fetch error');
+        bestError = bestError || `${strategy.name}: ${msg}`;
+      }
+    }
+  }
+
+  // Prefer feed-level error (more actionable) over proxy-level error
+  return { items: [], strategy: null, error: feedLevelError || bestError || 'all proxies failed' };
+}
+
+/* =====================================================
+   RSS PARSER
+===================================================== */
+function parseRSSXml(xmlText, source) {
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xmlText, 'application/xml');
+    const errorNode = doc.querySelector('parsererror');
+    if (errorNode) return [];
+
+    // Both RSS 2.0 and Atom
+    const items = doc.querySelectorAll('item, entry');
+    const results = [];
+
+    items.forEach(item => {
+      const title = stripCDATA(getText(item, 'title'));
+      const link = getLink(item);
+      const description = stripCDATA(getText(item, 'description, summary, content\\:encoded, content'));
+      const pubDate = getText(item, 'pubDate, published, updated, dc\\:date');
+      const image = extractImage(item, description);
+      if (!title || !link) return;
+
+      results.push({
+        id: source.id + '|' + link,
+        title: cleanText(title),
+        link,
+        description: cleanText(stripHTML(description)),
+        rawDescription: description,
+        pubDate: pubDate ? new Date(pubDate) : new Date(),
+        image,
+        source
+      });
+    });
+
+    return results;
+  } catch (e) {
+    console.error('Parse error for', source.name, e);
+    return [];
+  }
+}
+
+function getText(item, selector) {
+  const sels = selector.split(',').map(s => s.trim());
+  for (const sel of sels) {
+    try {
+      const el = item.querySelector(sel);
+      if (el && el.textContent) return el.textContent;
+    } catch (e) {}
+  }
+  return '';
+}
+
+function getLink(item) {
+  const linkEl = item.querySelector('link');
+  if (linkEl) {
+    if (linkEl.textContent && linkEl.textContent.trim()) return linkEl.textContent.trim();
+    const href = linkEl.getAttribute('href');
+    if (href) return href;
+  }
+  const guid = item.querySelector('guid');
+  if (guid && guid.textContent && guid.textContent.startsWith('http')) return guid.textContent.trim();
+  return '';
+}
+
+function extractImage(item, description) {
+  // Look in media:content, media:thumbnail, enclosure
+  const mediaContent = item.querySelector('content[url], thumbnail[url], enclosure[url]');
+  if (mediaContent) {
+    const url = mediaContent.getAttribute('url');
+    if (url && /\.(jpg|jpeg|png|webp|gif)/i.test(url)) return url;
+  }
+  return extractImageFromHtml(description);
+}
+
+function extractImageFromHtml(html) {
+  if (!html) return null;
+  const match = String(html).match(/<img[^>]+src=["']([^"']+)["']/i);
+  return match ? match[1] : null;
+}
+
+function stripCDATA(s) {
+  if (!s) return '';
+  return s.replace(/<!\[CDATA\[(.*?)\]\]>/gs, '$1').trim();
+}
+function stripHTML(s) {
+  if (!s) return '';
+  const tmp = document.createElement('div');
+  tmp.innerHTML = s;
+  return tmp.textContent || tmp.innerText || '';
+}
+function cleanText(s) {
+  return (s || '').replace(/\s+/g, ' ').trim();
+}
+
+/* =====================================================
+   AGGREGATE: fetch all enabled sources in parallel
+===================================================== */
+async function refreshAll(showToast = false) {
+  if (isRefreshing) return;
+  isRefreshing = true;
+  $refresh.classList.add('spinning');
+
+  const active = getAllSources().filter(s => enabledSources[s.id]);
+  const promises = active.map(async (source) => {
+    const result = await fetchAndParseSource(source);
+    return { source, ...result };
+  });
+
+  const results = await Promise.all(promises);
+
+  // Save diagnostics for the settings panel
+  lastDiagnostics = results.map(r => ({
+    sourceId: r.source.id,
+    sourceName: r.source.name,
+    color: r.source.color,
+    count: r.items.length,
+    strategy: r.strategy,
+    error: r.error
+  }));
+
+  const merged = results.flatMap(r => r.items);
+
+  // Deduplicate by link
+  const seen = new Set();
+  const unique = [];
+  for (const item of merged) {
+    if (!seen.has(item.link)) {
+      seen.add(item.link);
+      unique.push(item);
+    }
+  }
+
+  // Sort by date desc
+  unique.sort((a, b) => b.pubDate - a.pubDate);
+
+  // Detect new since last seen
+  const lastSeenTs = parseInt(localStorage.getItem(STORAGE_KEY_LAST) || '0', 10);
+  const newCount = unique.filter(it => it.pubDate.getTime() > lastSeenTs).length;
+  if (unique.length > 0) {
+    localStorage.setItem(STORAGE_KEY_LAST, String(unique[0].pubDate.getTime()));
+  }
+
+  allItems = unique;
+  render();
+
+  $refresh.classList.remove('spinning');
+  isRefreshing = false;
+
+  updateLastUpdateTime();
+
+  const okCount = lastDiagnostics.filter(d => d.count > 0).length;
+  const totalCount = lastDiagnostics.length;
+
+  if (allItems.length === 0) {
+    showEmpty(
+      'Nuk u ngarkuan lajme',
+      okCount === 0
+        ? 'Asnjë burim s\'u arrit. Hap cilësimet për diagnostikë ose lexo udhëzimet më poshtë.'
+        : 'Provo të rifreskosh.'
+    );
+  }
+
+  if (showToast) {
+    if (newCount > 0) {
+      toast(`${newCount} ${newCount === 1 ? 'lajm i ri' : 'lajme të reja'} · ${okCount}/${totalCount} burime`);
+    } else if (allItems.length === 0) {
+      toast(`Asnjë burim s'u arrit (0/${totalCount}). Shih cilësimet.`);
+    } else {
+      toast(`Të gjitha të përditësuara · ${okCount}/${totalCount} burime`);
+    }
+  }
+}
+
+function updateLastUpdateTime() {
+  const now = new Date();
+  const time = now.toLocaleTimeString('sq-AL', { hour: '2-digit', minute: '2-digit' });
+  $lastUpdate.innerHTML = `<span class="live-dot"></span>Live · Përditësuar ${time}`;
+}
+
+/* =====================================================
+   RENDERING
+===================================================== */
+function render() {
+  let items = [...allItems];
+
+  if (selectedSource !== 'all') {
+    items = items.filter(it => it.source.id === selectedSource);
+  }
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    items = items.filter(it =>
+      it.title.toLowerCase().includes(q) ||
+      (it.description || '').toLowerCase().includes(q)
+    );
+  }
+
+  if (items.length === 0) {
+    if (searchQuery) {
+      showEmpty('Asnjë lajm', `Asnjë rezultat për "${escapeHTML(searchQuery)}"`);
+    } else {
+      showEmpty('Asnjë lajm', 'Provo të rifreskosh ose ndrysho burimin.');
+    }
+    return;
+  }
+
+  $feed.innerHTML = items.slice(0, 200).map(renderCard).join('');
+
+  // Bind buttons
+  $feed.querySelectorAll('[data-action="summary"]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const itemId = btn.getAttribute('data-id');
+      const item = allItems.find(it => it.id === itemId);
+      if (!item) return;
+      const card = btn.closest('.news-card');
+      const box = card.querySelector('.ai-summary');
+      if (box.classList.contains('show')) {
+        box.classList.remove('show');
+        btn.innerHTML = aiBtnHTML();
+        return;
+      }
+      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="animation: spin 1s linear infinite;"><circle cx="12" cy="12" r="10" stroke-dasharray="60" stroke-dashoffset="20"/></svg> Po mendoj…`;
+      summarizeNews(item).then(({ text, mode }) => {
+        const summary = String(text || '').replace(/\n/g, '<br>');
+        box.innerHTML = `<div class="ai-summary-header">✨ Përmbledhje · ${escapeHTML(mode)}</div>${summary.split('<br>').map(line => escapeHTML(line)).join('<br>')}`;
+        box.classList.add('show');
+        btn.innerHTML = aiBtnHTML(true);
+      });
+    });
+  });
+}
+
+function aiBtnHTML(active = false) {
+  return `<svg width="14" height="14" viewBox="0 0 24 24" fill="${active ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> ${active ? 'Mbyll' : 'AI Përmbledhje'}`;
+}
+
+function renderCard(item) {
+  const time = relativeTime(item.pubDate);
+  const desc = item.description ? `<p class="news-desc">${escapeHTML(item.description)}</p>` : '';
+  // Images disabled per user preference — text-only UI
+  const img = '';
+  return `
+    <article class="news-card">
+      ${img}
+      <div class="news-body">
+        <div class="news-meta">
+          <span class="news-source" style="color:${item.source.color}">${escapeHTML(item.source.name)}</span>
+          <span class="news-dot">•</span>
+          <span>${time}</span>
+        </div>
+        <h2 class="news-title">${escapeHTML(item.title)}</h2>
+        ${desc}
+        <div class="news-actions">
+          <a class="news-btn primary" href="${escapeAttr(item.link)}" target="_blank" rel="noopener">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+            Lexo
+          </a>
+          <button class="news-btn" data-action="summary" data-id="${escapeAttr(item.id)}">
+            ${aiBtnHTML()}
+          </button>
+        </div>
+        <div class="ai-summary"></div>
+      </div>
+    </article>
+  `;
+}
+
+function showEmpty(title, desc) {
+  const isFile = location.protocol === 'file:';
+  const fileWarning = isFile ? `
+    <div style="margin-top:20px;padding:14px;background:#1a1c20;border:1px solid #ef476f;border-radius:12px;text-align:left;font-size:13px;line-height:1.5;color:#cbd5e1">
+      <div style="color:#ef476f;font-weight:700;margin-bottom:6px;">⚠️ Po e hap nga skedari (file://)</div>
+      Browser-ët modernë bllokojnë fetch-et nga <code style="background:#25282e;padding:2px 6px;border-radius:4px">file://</code> drejt internetit.
+      <br><br>
+      <strong>Zgjidhja:</strong> hape me një server lokal:
+      <ul style="margin:8px 0 0 20px;padding:0;">
+        <li>Python: <code style="background:#25282e;padding:2px 6px;border-radius:4px">python -m http.server 8000</code></li>
+        <li>Ose hosto në <a href="https://app.netlify.com/drop" target="_blank" style="color:#e63946">Netlify Drop</a> (drag-and-drop, falas)</li>
+      </ul>
+    </div>` : '';
+
+  const diagBtn = lastDiagnostics.length > 0 ? `
+    <button id="emptyDiagBtn" style="margin-top:16px;padding:10px 18px;background:#1f2126;border:none;color:#cbd5e1;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer">
+      Shih diagnostikën (${lastDiagnostics.filter(d=>d.count>0).length}/${lastDiagnostics.length} burime)
+    </button>` : '';
+
+  $feed.innerHTML = `
+    <div class="empty">
+      <div class="empty-icon">📭</div>
+      <div class="empty-title">${escapeHTML(title)}</div>
+      <div class="empty-desc">${escapeHTML(desc)}</div>
+      ${diagBtn}
+      ${fileWarning}
+    </div>
+  `;
+
+  const db = document.getElementById('emptyDiagBtn');
+  if (db) db.addEventListener('click', () => {
+    buildSourcesList();
+    $panel.classList.add('show');
+    $panelBg.classList.add('show');
+  });
+}
+
+function relativeTime(date) {
+  const now = Date.now();
+  const diff = (now - date.getTime()) / 1000;
+  if (diff < 60) return 'tani';
+  if (diff < 3600) return `${Math.floor(diff/60)} min`;
+  if (diff < 86400) return `${Math.floor(diff/3600)} orë`;
+  if (diff < 604800) return `${Math.floor(diff/86400)} ditë`;
+  return date.toLocaleDateString('sq-AL', { day: 'numeric', month: 'short' });
+}
+
+function escapeHTML(s) {
+  return String(s || '').replace(/[&<>"']/g, m =>
+    ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[m]
+  );
+}
+function escapeAttr(s) { return escapeHTML(s); }
+
+/* =====================================================
+   LOCAL AI: Extractive summarization (Albanian)
+===================================================== */
+const ALBANIAN_STOPWORDS = new Set([
+  'dhe','e','i','ne','me','per','qe','te','nga','si','eshte','ka','kjo','ky','do','ishte',
+  'kane','jo','po','ndaj','vetem','edhe','por','shume','kur','nese','ose','sepse','gjithe',
+  'jam','ku','mos','cdo','ai','ajo','ne','ju','ata','ato','une','ti','ne','jane','duke',
+  'kete','keto','tij','saj','tyre','mire','keq','ende','tashme','akoma','shpesh','sot',
+  'dje','neser','tani','aty','ketu','pas','para','mbi','nen','ndermjet','pa','si','i',
+  'një','nje','asnje','disa','shume','pak','ai','në','të','të','është','ka','ishin',
+  'kanë','këtë','këto','tjera','tjetër','vit','viti','vitin','vit','muaj','dite','ditë',
+  'them','tha','thane','thanë','thotë','thote','sipas','rreth','ja','aty','këtë','kjo',
+  'ku','kur','pse','si','cilet','cilat','cila','cili','do','duhet','mund','mundem',
+  'mundet','mundeni','do','dot','do','ishin','ishin','prane','larg','poshte','larte',
+  'me','pa','sa','aq','kaq','kete','ate','keshtu','ashtu','here','here','tjera','tjeter',
+  'një','nje','prej','deri','gjate','prej','poshte','larte','ne','ne','do','jane','jane',
+  'së','së','te','te','të','të','i','e','të','në','në','është','është','ka','ka','do','do'
+]);
+
+function normalize(s) {
+  return s.toLowerCase()
+    .replace(/[ëë]/g, 'e')
+    .replace(/[çç]/g, 'c')
+    .replace(/[^\p{L}\s]/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/* MAIN SUMMARIZE — picks API if key set, otherwise local */
+const STORAGE_KEY_GEMINI = 'nf_gemini_key';
+
+async function summarizeNews(item) {
+  const apiKey = (localStorage.getItem(STORAGE_KEY_GEMINI) || '').trim();
+  const fullText = (item.title + '. ' + (item.description || '')).slice(0, 4000);
+
+  if (apiKey) {
+    try {
+      const result = await summarizeWithGemini(fullText, apiKey);
+      return { text: result, mode: 'AI (Gemini)' };
+    } catch (e) {
+      // Fallback to local on API error
+      console.warn('Gemini failed, falling back to local:', e);
+      return { text: summarizeLocal(fullText), mode: 'Lokal (Gemini dështoi)' };
+    }
+  }
+  return { text: summarizeLocal(fullText), mode: 'Lokal' };
+}
+
+/* GEMINI API — true abstractive summarization */
+async function summarizeWithGemini(text, apiKey) {
+  const prompt = `Përmblidh këtë lajm shqip në 2-3 fjali të shkurtra. Mos kopjo fjalitë nga origjinali — RIFRAZO me fjalët e tua. Nxirr në pah esencën dhe pikat kyçe (kush, çfarë, ku, kur, pse). Përgjigju vetëm me përmbledhjen, pa hyrje, pa kllapa, pa shenja shtesë.
+
+LAJMI:
+${text}
+
+PËRMBLEDHJA (2-3 fjali shqip, e rifrazuar):`;
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${encodeURIComponent(apiKey)}`;
+  const body = {
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: { temperature: 0.4, maxOutputTokens: 220, topP: 0.9 },
+    safetySettings: [
+      { category: 'HARM_CATEGORY_HARASSMENT',        threshold: 'BLOCK_NONE' },
+      { category: 'HARM_CATEGORY_HATE_SPEECH',       threshold: 'BLOCK_NONE' },
+      { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+      { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' }
+    ]
+  };
+
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 20000);
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+    signal: ctrl.signal
+  });
+  clearTimeout(timer);
+
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '');
+    throw new Error(`Gemini ${res.status}: ${errText.slice(0, 100)}`);
+  }
+  const data = await res.json();
+  const out = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!out) throw new Error('Përgjigje bosh nga Gemini');
+  return out.trim().replace(/^["'`]+|["'`]+$/g, '');
+}
+
+/* LOCAL ABSTRACTIVE-LITE — extracts key facts and rephrases via templates */
+function summarizeLocal(text) {
+  if (!text) return 'Nuk ka tekst për përmbledhje.';
+  text = text.replace(/\s+/g, ' ').trim();
+
+  const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+  const cleaned = sentences.map(s => s.trim()).filter(s => s.length > 15);
+  if (cleaned.length === 0) return text.length > 250 ? text.slice(0, 250) + '…' : text;
+
+  // Extract key facts
+  const facts = extractKeyFacts(text);
+
+  // Score sentences
+  const wordFreq = {};
+  cleaned.forEach(s => {
+    normalize(s).split(/\s+/).forEach(w => {
+      if (w.length > 3 && !ALBANIAN_STOPWORDS.has(w)) {
+        wordFreq[w] = (wordFreq[w] || 0) + 1;
+      }
+    });
+  });
+  const scored = cleaned.map((s, idx) => {
+    const words = normalize(s).split(/\s+/);
+    let score = 0;
+    words.forEach(w => { if (wordFreq[w]) score += wordFreq[w]; });
+    score = score / Math.sqrt(Math.max(words.length, 1));
+    // Boost sentences containing key facts (proper nouns, numbers)
+    if (/\b\d+/.test(s)) score *= 1.2;
+    if (/[A-ZË][a-zë]+\s+[A-ZË][a-zë]+/.test(s)) score *= 1.25; // person names
+    if (idx === 0) score *= 1.3;
+    if (words.length < 6 || words.length > 45) score *= 0.6;
+    return { text: s, score, idx, words: words.length };
+  });
+
+  // Pick top 2 most informative
+  const top = scored.sort((a, b) => b.score - a.score).slice(0, 2);
+  top.sort((a, b) => a.idx - b.idx);
+
+  // Build a key-facts header
+  let header = '';
+  if (facts.who.length || facts.numbers.length || facts.places.length) {
+    const parts = [];
+    if (facts.who.length) parts.push('👤 ' + facts.who.slice(0, 2).join(', '));
+    if (facts.places.length) parts.push('📍 ' + facts.places.slice(0, 2).join(', '));
+    if (facts.numbers.length) parts.push('🔢 ' + facts.numbers.slice(0, 3).join(', '));
+    header = parts.join(' · ') + '\n';
+  }
+
+  // Compress each chosen sentence: drop subordinate clauses after comma
+  const compressed = top.map(t => compressSentence(t.text));
+  return (header ? header + '\n' : '') + compressed.join(' ');
+}
+
+function compressSentence(s) {
+  // Trim trailing subordinate clauses introduced by typical Albanian connectors
+  const cleaners = [
+    /,\s*(ndërsa|ndersa|sepse|pasi|kur|nëse|nese|i\s+cili|e\s+cila|të\s+cilët|qe\s+).*?[.!?]/i
+  ];
+  let out = s.trim();
+  cleaners.forEach(re => { out = out.replace(re, '.'); });
+  // Remove parenthetical "siç bën të ditur..."
+  out = out.replace(/\s*\(.*?\)\s*/g, ' ').replace(/\s+/g, ' ').trim();
+  return out;
+}
+
+function extractKeyFacts(text) {
+  const facts = { who: [], places: [], numbers: [], dates: [] };
+  const seen = new Set();
+
+  // Capitalized multi-word names (e.g., "Edi Rama", "Kryeministri Edi Rama")
+  const personRe = /\b([A-ZËÇ][a-zëç]{2,}(?:\s+[A-ZËÇ][a-zëç]{2,}){1,3})\b/g;
+  let m;
+  while ((m = personRe.exec(text)) !== null) {
+    const name = m[1].trim();
+    const k = name.toLowerCase();
+    // Skip months, days, common words
+    if (!/\b(janar|shkurt|mars|prill|maj|qershor|korrik|gusht|shtator|tetor|nëntor|dhjetor|hënë|martë|mërkurë|enjte|premte|shtunë|diel)\b/i.test(name)
+        && !seen.has(k) && name.length < 40) {
+      seen.add(k);
+      facts.who.push(name);
+    }
+  }
+
+  // Numbers + currency / units
+  const numRe = /\b(\d+(?:[.,]\d+)?(?:\s*(?:%|euro|dollarë|dollare|lekë|leke|mijë|mije|milion|miliard|persona|vite|vjet|orë|ore|km|metra|tonë|tone))?)\b/gi;
+  while ((m = numRe.exec(text)) !== null) {
+    if (facts.numbers.length < 4) facts.numbers.push(m[1]);
+  }
+
+  // Common Albanian places
+  const placeRe = /\b(Tiranë|Tirane|Durrës|Durres|Vlorë|Vlore|Shkodër|Shkoder|Korçë|Korce|Elbasan|Fier|Berat|Kosovë|Kosove|Maqedoni|Itali|Greqi|Gjermani|Amerikë|Amerike|SHBA|BE|Kuvend|Parlament)\b/g;
+  while ((m = placeRe.exec(text)) !== null) {
+    const p = m[1];
+    if (!seen.has(p.toLowerCase())) {
+      seen.add(p.toLowerCase());
+      facts.places.push(p);
+    }
+  }
+
+  return facts;
+}
+
+/* =====================================================
+   UI: chips, search, settings, toast, pull-to-refresh
+===================================================== */
+function buildChips() {
+  const enabled = getAllSources().filter(s => enabledSources[s.id]);
+  const chips = [{ id: 'all', name: 'Të gjitha', color: '#94a3b8' }, ...enabled];
+  $chips.innerHTML = chips.map(c =>
+    `<div class="chip ${c.id === selectedSource ? 'active' : ''}" data-id="${c.id}">${escapeHTML(c.name)}</div>`
+  ).join('');
+  $chips.querySelectorAll('.chip').forEach(el => {
+    el.addEventListener('click', () => {
+      selectedSource = el.getAttribute('data-id');
+      buildChips();
+      render();
+    });
+  });
+}
+
+function buildSourcesList() {
+  const diagMap = {};
+  lastDiagnostics.forEach(d => { diagMap[d.sourceId] = d; });
+
+  $sourcesList.innerHTML = getAllSources().map(s => {
+    const d = diagMap[s.id];
+    let statusHtml = '';
+    if (d) {
+      if (d.count > 0) {
+        statusHtml = `<span style="color:#22c55e;font-size:11px;font-weight:600">✓ ${d.count} lajme · ${d.strategy}</span>`;
+      } else {
+        statusHtml = `<span style="color:#ef4444;font-size:11px;font-weight:600" title="${escapeAttr(d.error||'')}">✗ ${escapeHTML((d.error||'gabim').slice(0, 40))}</span>`;
+      }
+    }
+    const delBtn = s.custom
+      ? `<button data-del="${s.id}" title="Hiq" style="background:transparent;border:none;color:#ef4444;font-size:18px;cursor:pointer;padding:0 8px;margin-right:4px">×</button>`
+      : '';
+    return `
+      <div class="source-toggle">
+        <div class="source-toggle-info">
+          <div class="source-toggle-name" style="color:${s.color}">${s.custom ? '👤 ' : ''}${escapeHTML(s.name)}</div>
+          <div class="source-toggle-url">${escapeHTML((Array.isArray(s.rss) ? s.rss[0] : s.rss).replace(/^https?:\/\//, ''))}</div>
+          ${statusHtml ? `<div style="margin-top:4px">${statusHtml}</div>` : ''}
+        </div>
+        ${delBtn}
+        <div class="switch ${enabledSources[s.id] ? 'on' : ''}" data-source="${s.id}"></div>
+      </div>
+    `;
+  }).join('');
+  $sourcesList.querySelectorAll('.switch').forEach(el => {
+    el.addEventListener('click', () => {
+      const id = el.getAttribute('data-source');
+      enabledSources[id] = !enabledSources[id];
+      el.classList.toggle('on');
+      saveEnabledSources();
+      buildChips();
+      render();
+    });
+  });
+  // Delete custom source
+  $sourcesList.querySelectorAll('[data-del]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const fullId = btn.getAttribute('data-del'); // e.g. "custom_c_172..."
+      const customId = fullId.replace(/^custom_/, '');
+      const list = loadCustomSources().filter(c => c.id !== customId);
+      saveCustomSources(list);
+      delete enabledSources[fullId];
+      saveEnabledSources();
+      buildChips();
+      buildSourcesList();
+      render();
+    });
+  });
+
+  // Show/hide "auto-disable failed" button based on diagnostics
+  const failedCount = lastDiagnostics.filter(d => d.count === 0).length;
+  const disableBtn = document.getElementById('disableFailedBtn');
+  if (disableBtn) {
+    if (failedCount > 0) {
+      disableBtn.style.display = 'block';
+      disableBtn.textContent = `Çaktivizo ${failedCount} burim${failedCount === 1 ? '' : 'e'} që dështuan`;
+    } else {
+      disableBtn.style.display = 'none';
+    }
+  }
+}
+
+function toast(msg) {
+  $toast.textContent = msg;
+  $toast.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => $toast.classList.remove('show'), 2400);
+}
+
+/* search input */
+$search.addEventListener('input', () => {
+  searchQuery = $search.value.trim();
+  $search.classList.toggle('has-value', !!searchQuery);
+  render();
+});
+$searchClear.addEventListener('click', () => {
+  $search.value = '';
+  searchQuery = '';
+  $search.classList.remove('has-value');
+  render();
+  $search.focus();
+});
+
+/* manual refresh */
+$refresh.addEventListener('click', () => refreshAll(true));
+
+/* settings panel */
+$settings.addEventListener('click', () => {
+  buildSourcesList();
+  $panel.classList.add('show');
+  $panelBg.classList.add('show');
+});
+function closePanel() {
+  $panel.classList.remove('show');
+  $panelBg.classList.remove('show');
+}
+$closePanel.addEventListener('click', closePanel);
+$panelBg.addEventListener('click', closePanel);
+
+/* Auto-disable failed sources */
+document.getElementById('disableFailedBtn').addEventListener('click', () => {
+  let disabled = 0;
+  lastDiagnostics.forEach(d => {
+    if (d.count === 0) {
+      enabledSources[d.sourceId] = false;
+      disabled++;
+    }
+  });
+  saveEnabledSources();
+  buildChips();
+  buildSourcesList();
+  render();
+  toast(`Çaktivizova ${disabled} burim${disabled === 1 ? '' : 'e'}`);
+});
+
+/* Re-enable all sources */
+document.getElementById('enableAllBtn').addEventListener('click', () => {
+  getAllSources().forEach(s => { enabledSources[s.id] = true; });
+  saveEnabledSources();
+  buildChips();
+  buildSourcesList();
+  refreshAll(true);
+});
+
+/* Save Gemini API key */
+document.getElementById('saveGeminiBtn').addEventListener('click', () => {
+  const input = document.getElementById('geminiKeyInput');
+  const status = document.getElementById('geminiStatus');
+  const key = input.value.trim();
+
+  if (!key) {
+    localStorage.removeItem(STORAGE_KEY_GEMINI);
+    status.textContent = 'API key u hoq — do përdorë algoritmin lokal';
+    status.style.color = '#94a3b8';
+    return;
+  }
+  if (!/^AIza[0-9A-Za-z_-]{20,}$/.test(key)) {
+    status.textContent = 'Çelësi duket i gabuar (zakonisht nis me AIza...)';
+    status.style.color = '#ef4444';
+    return;
+  }
+  localStorage.setItem(STORAGE_KEY_GEMINI, key);
+  input.value = '••••••••' + key.slice(-4);
+  status.textContent = '✓ U ruajt. AI Gemini aktiv.';
+  status.style.color = '#22c55e';
+});
+
+// Pre-fill masked key placeholder when settings open
+$settings.addEventListener('click', () => {
+  const k = localStorage.getItem(STORAGE_KEY_GEMINI);
+  const input = document.getElementById('geminiKeyInput');
+  if (k && input && !input.value) {
+    input.placeholder = '✓ Aktiv: ••••' + k.slice(-4) + ' (shkruaj ri për ta zëvendësuar)';
+  }
+});
+
+/* Add custom RSS source */
+document.getElementById('addCustomBtn').addEventListener('click', async () => {
+  const nameEl = document.getElementById('customNameInput');
+  const urlEl = document.getElementById('customUrlInput');
+  const status = document.getElementById('customStatus');
+  const name = nameEl.value.trim();
+  const url = urlEl.value.trim();
+
+  if (!name) { status.textContent = 'Shkruaj një emër'; status.style.color = '#ef4444'; return; }
+  if (!url || !/^https?:\/\//.test(url)) { status.textContent = 'URL duhet të nisë me http:// ose https://'; status.style.color = '#ef4444'; return; }
+
+  status.textContent = 'Po teston URL...';
+  status.style.color = '#94a3b8';
+
+  // Test the feed before saving
+  const testSource = { id: 'test_' + Date.now(), name, rss: [url], color: '#7c3aed' };
+  const result = await fetchAndParseSource(testSource);
+
+  if (!result.items || result.items.length === 0) {
+    status.textContent = '✗ ' + (result.error || 'Feed nuk u ngarkua').slice(0, 60);
+    status.style.color = '#ef4444';
+    return;
+  }
+
+  // Save it
+  const customId = 'c_' + Date.now();
+  const list = loadCustomSources();
+  list.push({ id: customId, name, rss: [url] });
+  saveCustomSources(list);
+  enabledSources['custom_' + customId] = true;
+  saveEnabledSources();
+
+  status.textContent = `✓ U shtua! ${result.items.length} lajme`;
+  status.style.color = '#22c55e';
+  nameEl.value = '';
+  urlEl.value = '';
+
+  buildChips();
+  buildSourcesList();
+  refreshAll(true);
+});
+
+/* pull to refresh */
+let ptrStartY = 0;
+let ptrCurrentY = 0;
+let ptrPulling = false;
+
+document.addEventListener('touchstart', e => {
+  if (window.scrollY === 0 && !isRefreshing) {
+    ptrStartY = e.touches[0].clientY;
+    ptrPulling = true;
+  }
+}, { passive: true });
+
+document.addEventListener('touchmove', e => {
+  if (!ptrPulling) return;
+  ptrCurrentY = e.touches[0].clientY;
+  const delta = ptrCurrentY - ptrStartY;
+  if (delta > 0 && window.scrollY === 0) {
+    const pull = Math.min(delta * 0.5, 80);
+    $ptr.style.transform = `translateY(${pull}px)`;
+    $ptr.classList.add('pulling');
+  }
+}, { passive: true });
+
+document.addEventListener('touchend', () => {
+  if (!ptrPulling) return;
+  const delta = ptrCurrentY - ptrStartY;
+  $ptr.classList.remove('pulling');
+  if (delta > 80 && !isRefreshing) {
+    $ptr.classList.add('refreshing');
+    $ptr.style.transform = `translateY(54px)`;
+    refreshAll(true).then(() => {
+      $ptr.classList.remove('refreshing');
+      $ptr.style.transform = '';
+    });
+  } else {
+    $ptr.style.transform = '';
+  }
+  ptrPulling = false;
+  ptrStartY = 0;
+  ptrCurrentY = 0;
+}, { passive: true });
+
+/* =====================================================
+   AUTO REFRESH every 5 min, only when visible
+===================================================== */
+function startAutoRefresh() {
+  stopAutoRefresh();
+  autoRefreshTimer = setInterval(() => {
+    if (document.visibilityState === 'visible') refreshAll(false);
+  }, REFRESH_INTERVAL);
+}
+function stopAutoRefresh() {
+  if (autoRefreshTimer) { clearInterval(autoRefreshTimer); autoRefreshTimer = null; }
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    refreshAll(false);
+    startAutoRefresh();
+  } else {
+    stopAutoRefresh();
+  }
+});
+
+/* =====================================================
+   INIT
+===================================================== */
+buildChips();
+refreshAll(false);
+startAutoRefresh();
+
+/* Service worker for offline */
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js').catch(() => {});
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+<meta charset="UTF-8">
+<title>Krijo Ikonat - News Flash</title>
+<style>
+  body {
+    background: #0a0b0d;
+    color: #f1f5f9;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0;
+    padding: 24px;
+    min-height: 100vh;
+  }
+  h1 { color: #e63946; margin-bottom: 8px; }
+  p { color: #94a3b8; line-height: 1.5; }
+  .preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin: 24px 0;
+  }
+  .preview-item {
+    background: #14161a;
+    border: 1px solid #1f2126;
+    padding: 16px;
+    border-radius: 16px;
+    text-align: center;
+  }
+  .preview-item canvas {
+    display: block;
+    margin: 0 auto 8px;
+    background: #1f2126;
+    border-radius: 8px;
+  }
+  .preview-item small { color: #64748b; font-size: 12px; }
+  button {
+    background: linear-gradient(135deg, #e63946, #c1121f);
+    color: #fff;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 16px;
+  }
+  button:active { transform: scale(0.97); }
+  .info {
+    background: #14161a;
+    border-left: 3px solid #e63946;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-top: 24px;
+    font-size: 14px;
+  }
+  code { background: #1f2126; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+</style>
+</head>
+<body>
+  <h1>Krijo Ikonat e Aplikacionit</h1>
+  <p>Shtyp butonin më poshtë për të gjeneruar dhe shkarkuar 4 ikonat PNG. Pastaj i vendos në të njëjtën dosje me <code>index.html</code>.</p>
+
+  <div class="preview">
+    <div class="preview-item">
+      <canvas id="c180" width="180" height="180"></canvas>
+      <small>icon-180.png<br>(Apple Touch)</small>
+    </div>
+    <div class="preview-item">
+      <canvas id="c192" width="192" height="192"></canvas>
+      <small>icon-192.png<br>(PWA)</small>
+    </div>
+    <div class="preview-item">
+      <canvas id="c512" width="512" height="512" style="width:128px;height:128px"></canvas>
+      <small>icon-512.png<br>(PWA HD)</small>
+    </div>
+    <div class="preview-item">
+      <canvas id="cmask" width="512" height="512" style="width:128px;height:128px"></canvas>
+      <small>icon-maskable.png<br>(Android)</small>
+    </div>
+  </div>
+
+  <button id="downloadAll">Shkarko të 4 Ikonat</button>
+
+  <div class="info">
+    <strong>Hapat e radhës:</strong><br>
+    1. Shtyp butonin → 4 PNG do të shkarkohen<br>
+    2. Vendosi në dosjen <code>News Flash</code> bashkë me <code>index.html</code><br>
+    3. Hap <code>index.html</code> në Safari në iPhone<br>
+    4. Share → Add to Home Screen
+  </div>
+
+<script>
+function drawIcon(canvas, maskable) {
+  const size = canvas.width;
+  const ctx = canvas.getContext('2d');
+
+  // Background gradient
+  const grad = ctx.createLinearGradient(0, 0, 0, size);
+  grad.addColorStop(0, '#e63946');
+  grad.addColorStop(1, '#c1121f');
+
+  if (maskable) {
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, size, size);
+  } else {
+    const radius = size * 0.22;
+    roundRect(ctx, 0, 0, size, size, radius);
+    ctx.fillStyle = grad;
+    ctx.fill();
+  }
+
+  // Soft inner highlight
+  const high = ctx.createRadialGradient(size*0.3, size*0.25, 0, size*0.3, size*0.25, size*0.6);
+  high.addColorStop(0, 'rgba(255,255,255,0.2)');
+  high.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = high;
+  ctx.fillRect(0, 0, size, size);
+
+  // Shadow for "NF"
+  ctx.shadowColor = 'rgba(0,0,0,0.3)';
+  ctx.shadowBlur = size * 0.04;
+  ctx.shadowOffsetY = size * 0.012;
+
+  // Text "NF"
+  ctx.fillStyle = '#fff';
+  ctx.font = `900 ${size * 0.42}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('NF', size / 2, size * 0.52);
+
+  // Small accent dot top right
+  ctx.shadowColor = 'transparent';
+  ctx.beginPath();
+  ctx.arc(size * 0.78, size * 0.22, size * 0.06, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.95)';
+  ctx.fill();
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.arcTo(x + w, y, x + w, y + r, r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+  ctx.lineTo(x + r, y + h);
+  ctx.arcTo(x, y + h, x, y + h - r, r);
+  ctx.lineTo(x, y + r);
+  ctx.arcTo(x, y, x + r, y, r);
+  ctx.closePath();
+}
+
+drawIcon(document.getElementById('c180'), false);
+drawIcon(document.getElementById('c192'), false);
+drawIcon(document.getElementById('c512'), false);
+drawIcon(document.getElementById('cmask'), true);
+
+function downloadCanvas(canvas, filename) {
+  return new Promise(resolve => {
+    canvas.toBlob(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        URL.revokeObjectURL(a.href);
+        a.remove();
+        resolve();
+      }, 300);
+    }, 'image/png');
+  });
+}
+
+document.getElementById('downloadAll').addEventListener('click', async () => {
+  await downloadCanvas(document.getElementById('c180'), 'icon-180.png');
+  await downloadCanvas(document.getElementById('c192'), 'icon-192.png');
+  await downloadCanvas(document.getElementById('c512'), 'icon-512.png');
+  await downloadCanvas(document.getElementById('cmask'), 'icon-maskable.png');
+});
+</script>
+</body>
+</html>
