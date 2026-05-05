@@ -587,27 +587,11 @@
    Each source can have multiple RSS URL candidates — fetcher tries each
 ===================================================== */
 const SOURCES = [
-  { id: 'topchannel',   name: 'Top Channel',   rss: [
-      'https://top-channel.tv/feed/',
-      'https://top-channel.tv/rss',
-      'https://top-channel.tv/?feed=rss2'
-    ], color: '#e63946' },
-  { id: 'tema',         name: 'Gazeta Tema',   rss: [
-      'https://www.gazetatema.net/?feed=rss2',
-      'https://www.gazetatema.net/feed',
-      'https://gazetatema.net/feed/',
-      'https://www.gazetatema.net/feed/'
-    ], color: '#3a86ff' },
   { id: 'balkanweb',    name: 'Balkanweb',     rss: [
       'https://www.balkanweb.com/feed/',
       'https://balkanweb.com/feed/',
       'https://www.balkanweb.com/?feed=rss2'
     ], color: '#fb8500' },
-  { id: 'shqiptarja',   name: 'Shqiptarja',    rss: [
-      'https://shqiptarja.com/feed',
-      'https://shqiptarja.com/feed/',
-      'https://shqiptarja.com/rss'
-    ], color: '#06d6a0' },
   { id: 'panorama',     name: 'Panorama',      rss: [
       'https://www.panorama.com.al/feed/',
       'https://panorama.com.al/feed/',
@@ -625,48 +609,14 @@ const SOURCES = [
       'https://news24.al/feed/',
       'https://news24.al/?feed=rss2'
     ], color: '#00b4d8' },
-  { id: 'politiko',     name: 'Politiko',      rss: [
-      'https://politiko.al/feed/',
-      'https://politiko.al/?feed=rss2'
-    ], color: '#ef476f' },
-  { id: 'a2',           name: 'A2 CNN',        rss: [
-      'https://a2news.com/feed',
-      'https://a2news.com/feed/',
-      'https://a2cnn.com/feed/',
-      'https://a2news.com/?feed=rss2'
-    ], color: '#118ab2' },
-  { id: 'syri',         name: 'Syri.net',      rss: [
-      'https://www.syri.net/feed/',
-      'https://syri.net/feed/',
-      'https://www.syri.net/?feed=rss2'
-    ], color: '#ffd60a' },
-  { id: 'gazetadita',   name: 'Gazeta Dita',   rss: [
-      'https://www.gazetadita.al/feed/',
-      'https://gazetadita.al/feed/',
-      'https://www.gazetadita.al/?feed=rss2'
-    ], color: '#9d4edd' },
-  { id: 'supersport',   name: 'SuperSport',    rss: [
-      'https://www.supersport.al/feed',
-      'https://www.supersport.al/feed/',
-      'https://supersport.al/feed/'
-    ], color: '#06ffa5' },
-  { id: 'panoramasport',name: 'Panorama Sport',rss: [
+  { id: 'panoramasport', name: 'Panorama Sport', rss: [
       'https://www.panoramasport.com.al/feed/',
       'https://panoramasport.com.al/feed/'
     ], color: '#fb5607' },
-  // Burime alternative — më të besueshme me proxy publike
   { id: 'telegrafi',    name: 'Telegrafi',     rss: [
       'https://telegrafi.com/feed/',
       'https://telegrafi.com/?feed=rss2'
     ], color: '#fca311' },
-  { id: 'albeu',        name: 'Albeu',         rss: [
-      'https://albeu.com/feed/',
-      'https://albeu.com/?feed=rss2'
-    ], color: '#2ec4b6' },
-  { id: 'newsbomb',     name: 'NewsBomb',      rss: [
-      'https://www.newsbomb.al/feed/',
-      'https://newsbomb.al/feed/'
-    ], color: '#e71d36' },
   { id: 'kohajone',     name: 'Koha Jone',     rss: [
       'https://www.kohajone.com/feed/',
       'https://kohajone.com/feed/'
@@ -674,11 +624,7 @@ const SOURCES = [
   { id: 'voal',         name: 'Voal',          rss: [
       'https://www.voal.ch/feed/',
       'https://voal.ch/feed/'
-    ], color: '#80ed99' },
-  { id: 'albanianpost', name: 'Albanian Post', rss: [
-      'https://albanianpost.com/feed/',
-      'https://www.albanianpost.com/feed/'
-    ], color: '#a0c4ff' }
+    ], color: '#80ed99' }
 ];
 
 const STORAGE_KEY_CUSTOM = 'nf_custom_sources';
